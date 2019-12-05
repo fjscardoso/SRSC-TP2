@@ -1,7 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="d46b9451-122c-427f-8958-cd9cb2624c98" name="Default Changelist" comment="" />
+    <list default="true" id="d46b9451-122c-427f-8958-cd9cb2624c98" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/Client.java" beforeDir="false" afterPath="$PROJECT_DIR$/Client.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mboxes/1/description" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/mboxes/2/_1_1" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/mboxes/2/description" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/mboxes/3/description" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/TP2a/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/TP2a/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/TP2a/Client.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/TP2a/Client.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/TP2a/mboxes/1/description" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/TP2a/mboxes/2/_1_1" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/TP2a/mboxes/2/description" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/TP2a/receipts/1/2_1" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/receipts/1/2_1" beforeDir="false" />
+    </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -15,7 +28,18 @@
       </list>
     </option>
   </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="IgnoredFileRootStore">
+    <option name="generatedRoots">
+      <set>
+        <option value="$PROJECT_DIR$/.idea" />
+      </set>
+    </option>
+  </component>
   <component name="ProjectId" id="1TgAN2o7iSxAbSTSapqnlrzEcv2" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
@@ -84,10 +108,26 @@
       <workItem from="1574944148376" duration="2217000" />
       <workItem from="1575219300408" duration="7060000" />
       <workItem from="1575294030794" duration="4052000" />
+      <workItem from="1575298835799" duration="3671000" />
+      <workItem from="1575389637530" duration="3106000" />
+      <workItem from="1575567223397" duration="7964000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="1" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="COLUMN_ORDER" />
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
 </project>

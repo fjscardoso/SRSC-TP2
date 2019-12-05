@@ -7,10 +7,18 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-import java.io.*;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.security.*;
-import java.util.*;
+import java.security.cert.CertificateException;
+import java.text.ParseException;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Scanner;
 
 public class Client {
 
@@ -26,9 +34,7 @@ public class Client {
     private static Socket socket;
     private static Cipher cipher;
 
-    private static Map<Integer, Map<String, Key>> map = new HashMap<>();
-
-    public static void main(String[] args) throws IOException, ClassNotFoundException, NoSuchProviderException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, IllegalBlockSizeException, NoSuchPaddingException {
+    public static void main(String[] args) throws IOException, ClassNotFoundException, NoSuchProviderException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, IllegalBlockSizeException, NoSuchPaddingException, CertificateException, SignatureException, KeyStoreException, ParseException, UnrecoverableKeyException {
         socket = new Socket("localhost", 9000);
         Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
         cipher = Cipher.getInstance(cipherMode, "BC");
@@ -49,13 +55,13 @@ public class Client {
                         send(cmd[0], Integer.parseInt(cmd[1]), Integer.parseInt(cmd[2]), cmd[3], cmd[3]);
                         break;
                     case RECEIVE: ;
-                        receiveOrStatus(cmd[0], Integer.parseInt(cmd[1]), cmd[2]);
+                        receive(cmd[0], Integer.parseInt(cmd[1]), cmd[2]);
                         break;
                     case RECEIPT: ;
                         receipt(cmd[0], Integer.parseInt(cmd[1]), cmd[2], cmd[3]);
                         break;
                     case STATUS: ;
-                        receiveOrStatus(cmd[0], Integer.parseInt(cmd[1]), cmd[2]);
+                        status(cmd[0], Integer.parseInt(cmd[1]), cmd[2]);
                         break;
                     case EXIT:
                         System.exit(1);
@@ -80,28 +86,7 @@ public class Client {
             System.out.println(data.getAsJsonObject());
     }
 
-    private static void create(String type, int user) throws IOException, NoSuchProviderException, NoSuchAlgorithmException {
-
-        SecureRandom random= Utils.createFixedRandom();
-
-        // Creation of keys (keypair)
-        KeyPairGenerator generator= KeyPairGenerator.getInstance("RSA", "BC");
-        generator.initialize(1024, random);
-        // generator.initialize(2048, random);
-        // generator.initialize(8192, random);
-        // generator.initialize(4096, random);
-
-        KeyPair pair= generator.generateKeyPair();
-        Key pubKey= pair.getPublic();
-        Key privKey= pair.getPrivate();
-
-        Map<String, Key> aux = new HashMap<>();
-        aux.put("publicKey", pubKey);
-        aux.put("privateKey", privKey);
-
-        map.put(user, aux);
-
-        System.out.println(map.size());
+    private static void create(String type, int user) throws IOException, NoSuchProviderException, NoSuchAlgorithmException, KeyStoreException, CertificateException, ParseException, InvalidKeyException, SignatureException {
 
         JsonWriter wrt = new JsonWriter(new OutputStreamWriter(socket.getOutputStream()));
         wrt.beginObject();
@@ -115,14 +100,21 @@ public class Client {
             System.out.println(data.getAsJsonObject());
     }
 
-    private static void send(String type, int sender, int receiver, String msg, String copy) throws IOException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
+    private static void send(String type, int sender, int receiver, String msg, String copy) throws IOException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, CertificateException, NoSuchProviderException, SignatureException {
+
+        KeyStore keyStore = KeyStore.getInstance("JKS");
+        FileInputStream stream = new FileInputStream("server.jks");
+        keyStore.load(stream, "password".toCharArray());
+
+        java.security.cert.Certificate[] user2 = keyStore.getCertificateChain("user" + receiver);
+
+        //Veryify rootCA certificate
+        user2[0].verify(user2[1].getPublicKey());
 
         // Cifrar
-        System.out.println(map.get(receiver).get("publicKey"));
-        cipher.init(Cipher.ENCRYPT_MODE, map.get(receiver).get("publicKey"));
+        cipher.init(Cipher.ENCRYPT_MODE, user2[0].getPublicKey());
 
-        byte[] cipherText = cipher.doFinal(Base64.getEncoder().encode(msg.getBytes()));
-
+        byte[] cipherText = cipher.doFinal(msg.getBytes());
         JsonWriter wrt = new JsonWriter(new OutputStreamWriter(socket.getOutputStream()));
         wrt.beginObject();
         wrt.name("type").value(type);
@@ -138,7 +130,32 @@ public class Client {
             System.out.println(data.getAsJsonObject());
     }
 
-    private static void receiveOrStatus(String type, int id, String msgId) throws IOException {
+    private static void receive(String type, int id, String msgId) throws IOException, BadPaddingException, IllegalBlockSizeException, InvalidKeyException, KeyStoreException, CertificateException, NoSuchAlgorithmException, NoSuchProviderException, SignatureException, UnrecoverableKeyException {
+        KeyStore keyStore = KeyStore.getInstance("JKS");
+        FileInputStream stream = new FileInputStream("server.jks");
+        keyStore.load(stream, "password".toCharArray());
+
+        Key privKey = keyStore.getKey("user" + id, "password".toCharArray());
+
+
+        JsonWriter wrt = new JsonWriter(new OutputStreamWriter(socket.getOutputStream()));
+        wrt.beginObject();
+        wrt.name("type").value(type);
+        wrt.name("id").value(id);
+        wrt.name("msg").value(msgId);
+        wrt.endObject();
+        wrt.flush();
+        JsonReader js = new JsonReader( new InputStreamReader( socket.getInputStream(), "UTF-8") );
+        JsonElement data = new JsonParser().parse(js);
+        cipher.init(Cipher.DECRYPT_MODE, privKey);
+        byte[] decrypted = cipher.doFinal(Base64.getDecoder().decode(data.getAsJsonObject().get("result").getAsJsonArray().get(1).getAsString()));
+        if (data.isJsonObject())
+            System.out.println(new String(decrypted));
+
+
+    }
+
+    private static void status(String type, int id, String msgId) throws IOException, BadPaddingException, IllegalBlockSizeException, InvalidKeyException, KeyStoreException, CertificateException, NoSuchAlgorithmException, NoSuchProviderException, SignatureException, UnrecoverableKeyException {
         JsonWriter wrt = new JsonWriter(new OutputStreamWriter(socket.getOutputStream()));
         wrt.beginObject();
         wrt.name("type").value(type);
@@ -150,6 +167,8 @@ public class Client {
         JsonElement data = new JsonParser().parse(js);
         if (data.isJsonObject())
             System.out.println(data.getAsJsonObject());
+
+
     }
 
     private static void receipt(String type, int id, String msgId, String receipt) throws IOException {
@@ -166,7 +185,6 @@ public class Client {
         //if (data.isJsonObject())
         //    System.out.println(data.getAsJsonObject());
     }
-
 
 
 }
