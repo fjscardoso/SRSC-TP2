@@ -137,6 +137,7 @@ public class Client {
 
         byte sessionAndkey[] = outputStream.toByteArray( );
 
+        //Get receiver certificate from keystore
         KeyStore keyStore = KeyStore.getInstance("JKS");
         FileInputStream stream = new FileInputStream("server.jks");
         keyStore.load(stream, "password".toCharArray());
@@ -148,8 +149,9 @@ public class Client {
 
         // Cifrar com chave publica do recetor, assinatura digital
         cipher1.init(Cipher.ENCRYPT_MODE, user2[0].getPublicKey());
-
         byte[] cipherText = cipher1.doFinal(sessionAndkey);
+
+        //Criar jsonObject com mensagem, parametros e chave
         JsonObject obj = new JsonObject();
         obj.addProperty("content", Base64.getEncoder().encodeToString(cipherText));
         obj.addProperty("size", sessionEncrypted.length);
@@ -172,6 +174,8 @@ public class Client {
     }
 
     private static void receive(String type, int id, String msgId) throws IOException, BadPaddingException, IllegalBlockSizeException, InvalidKeyException, KeyStoreException, CertificateException, NoSuchAlgorithmException, NoSuchProviderException, SignatureException, UnrecoverableKeyException {
+
+        //Get user private key from keystore
         KeyStore keyStore = KeyStore.getInstance("JKS");
         FileInputStream stream = new FileInputStream("server.jks");
         keyStore.load(stream, "password".toCharArray());
@@ -189,26 +193,33 @@ public class Client {
 
         JsonReader js = new JsonReader( new InputStreamReader( socket.getInputStream(), "UTF-8") );
         JsonElement data = new JsonParser().parse(js);
+
         cipher1.init(Cipher.DECRYPT_MODE, privKey);
-        //byte[] authenticated = cipher1.doFinal(Base64.getDecoder().decode(data.getAsJsonObject().get("result").getAsJsonArray().get(1).getAsString()));
-        String x = new String(Base64.getDecoder().decode(data.getAsJsonObject().get("result").getAsJsonArray().get(1).getAsString()));
 
-        JsonObject jsonObject = new JsonParser().parse(x).getAsJsonObject();
+        //Decode JsonObject from base64
+        String msgDecoded = new String(Base64.getDecoder().decode(data.getAsJsonObject().get("result").getAsJsonArray().get(1).getAsString()));
 
-        byte[] cipherText = Base64.getDecoder().decode(jsonObject.get("content").getAsString());
+        //Parse JsonObject with contents and params to decryption
+        JsonObject msgAndParams = new JsonParser().parse(msgDecoded).getAsJsonObject();
+
+        //Decode contents from base64
+        byte[] cipherText = Base64.getDecoder().decode(msgAndParams.get("content").getAsString());
+
+        //Decrypt with private key from the receptor
         byte[] sessionAndKey = cipher1.doFinal(cipherText);
 
-        byte[] msg = new byte[jsonObject.get("size").getAsInt()];
-        byte[] key = new byte[sessionAndKey.length - jsonObject.get("size").getAsInt()];
-        System.arraycopy(sessionAndKey,0,msg,0,jsonObject.get("size").getAsInt());
-        System.arraycopy(sessionAndKey,jsonObject.get("size").getAsInt(),key,0,sessionAndKey.length - jsonObject.get("size").getAsInt());
+        //Separate encrpyted message and key
+        byte[] msg = new byte[msgAndParams.get("size").getAsInt()];
+        byte[] key = new byte[sessionAndKey.length - msgAndParams.get("size").getAsInt()];
+        System.arraycopy(sessionAndKey,0,msg,0,msgAndParams.get("size").getAsInt());
+        System.arraycopy(sessionAndKey,msgAndParams.get("size").getAsInt(),key,0,sessionAndKey.length - msgAndParams.get("size").getAsInt());
 
         SecretKey originalKey = new SecretKeySpec(key, 0, key.length, "AES");
 
-
-       cipher2.init(Cipher.DECRYPT_MODE, originalKey);
-       byte[] decrypted = cipher2.doFinal(msg);
-       System.out.println(new String(decrypted));
+        //Decrypt message with session key and print
+        cipher2.init(Cipher.DECRYPT_MODE, originalKey);
+        byte[] decrypted = cipher2.doFinal(msg);
+        System.out.println(new String(decrypted));
 
 
     }
