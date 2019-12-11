@@ -3,17 +3,17 @@
   <component name="ChangeListManager">
     <list default="true" id="d46b9451-122c-427f-8958-cd9cb2624c98" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/Client.java" beforeDir="false" afterPath="$PROJECT_DIR$/Client.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mboxes/1/1_1" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/mboxes/1/description" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/mboxes/2/_1_1" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/mboxes/2/description" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/mboxes/3/description" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/out/production/TP2a/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/TP2a/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/out/production/TP2a/Client.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/TP2a/Client.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/TP2a/mboxes/1/description" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/TP2a/mboxes/2/_1_1" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/TP2a/mboxes/2/description" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/TP2a/receipts/1/2_1" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/TP2a/server.jks" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/TP2a/server.jks" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/receipts/1/1_1" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/receipts/1/2_1" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/server.jks" beforeDir="false" afterPath="$PROJECT_DIR$/server.jks" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -71,7 +71,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Application.Server">
+  <component name="RunManager" selected="Application.Client">
     <configuration name="Client" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="Client" />
       <module name="TP2a" />
@@ -110,7 +110,13 @@
       <workItem from="1575294030794" duration="4052000" />
       <workItem from="1575298835799" duration="3671000" />
       <workItem from="1575389637530" duration="3106000" />
-      <workItem from="1575567223397" duration="7964000" />
+      <workItem from="1575567223397" duration="8172000" />
+      <workItem from="1575641572345" duration="4388000" />
+      <workItem from="1575727366776" duration="2836000" />
+      <workItem from="1575757207716" duration="330000" />
+      <workItem from="1575821699128" duration="856000" />
+      <workItem from="1575990537243" duration="7013000" />
+      <workItem from="1576013962514" duration="4741000" />
     </task>
     <servers />
   </component>
