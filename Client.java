@@ -12,8 +12,6 @@ import java.security.*;
 import java.security.cert.CertificateException;
 import java.text.ParseException;
 import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Scanner;
 
 public class Client {
@@ -30,14 +28,14 @@ public class Client {
 
     private static final String cipherMode = "RSA/None/NoPadding";
     private static Socket socket;
-    private static Cipher cipher1, cipher2;
+    private static Cipher authCipher1, authCipher2, sessionCipher;
     private static SecretKey secretKey;
 
     public static void main(String[] args) throws IOException, ClassNotFoundException, NoSuchProviderException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, IllegalBlockSizeException, NoSuchPaddingException, CertificateException, SignatureException, KeyStoreException, ParseException, UnrecoverableKeyException {
-        socket = new Socket("localhost", 9000);
+        socket = new Socket("localhost", 9002);
         Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
-        cipher1 = Cipher.getInstance("RSA/None/NoPadding", "BC");
-        cipher2 = Cipher.getInstance("AES/ECB/PKCS5Padding", "BC");
+        authCipher1 = Cipher.getInstance("RSA/None/NoPadding", "BC");
+        authCipher2 = Cipher.getInstance("RSA/None/NoPadding", "BC");
 
         Scanner in = new Scanner(System.in);
         String command = (in.nextLine()).toLowerCase();
@@ -119,7 +117,7 @@ public class Client {
             System.out.println(data.getAsJsonObject());
     }
 
-    private static void send(String type, int sender, int receiver, String msg, String copy) throws IOException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, CertificateException, NoSuchProviderException, SignatureException {
+    private static void send(String type, int sender, int receiver, String msg, String copy) throws IOException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, CertificateException, NoSuchProviderException, SignatureException, NoSuchPaddingException {
 
         //Generate session key
         KeyGenerator keyGen = KeyGenerator.getInstance("AES", "BC");
@@ -127,42 +125,54 @@ public class Client {
         secretKey = keyGen.generateKey();
 
         //Cifrar com chave de sessao
-        cipher2.init(Cipher.ENCRYPT_MODE, secretKey);
-        byte[] sessionEncrypted = cipher2.doFinal(msg.getBytes());
+        sessionCipher = Cipher.getInstance("AES/ECB/PKCS5Padding", "BC");
+        sessionCipher.init(Cipher.ENCRYPT_MODE, secretKey);
+        byte[] sessionEncrypted = sessionCipher.doFinal(msg.getBytes());
 
         //Append key to msg
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream( );
         outputStream.write( sessionEncrypted );
         outputStream.write( secretKey.getEncoded() );
 
-        byte sessionAndkey[] = outputStream.toByteArray( );
+        byte sessionAndkey[] = outputStream.toByteArray();
+
+        //Criar jsonObject com mensagem, parametros e chave
+        JsonObject obj = new JsonObject();
+        obj.addProperty("content", Base64.getEncoder().encodeToString(sessionAndkey));
+        obj.addProperty("size", sessionEncrypted.length);
+        obj.addProperty("alg", "AES/ECB/PKCS5Padding");
+
+        String msg64 = Base64.getEncoder().encodeToString(obj.toString().getBytes());
 
         //Get receiver certificate from keystore
         KeyStore keyStore = KeyStore.getInstance("JKS");
         FileInputStream stream = new FileInputStream("server.jks");
         keyStore.load(stream, "password".toCharArray());
 
+        //Get private key from sender
+        Key privKey = keyStore.getKey("user" + sender, "password".toCharArray());
+
+        //Encrypt with senders private key
+        authCipher1.init(Cipher.ENCRYPT_MODE, privKey);
+        byte[] auth1 = authCipher1.doFinal(msg64.getBytes());
+
+        //Get receiver certificate
         java.security.cert.Certificate[] user2 = keyStore.getCertificateChain("user" + receiver);
 
-        //Veryify rootCA certificate
+        //Veryify certificate with rootCA
         user2[0].verify(user2[1].getPublicKey());
 
         // Cifrar com chave publica do recetor, assinatura digital
-        cipher1.init(Cipher.ENCRYPT_MODE, user2[0].getPublicKey());
-        byte[] cipherText = cipher1.doFinal(sessionAndkey);
+        authCipher2.init(Cipher.ENCRYPT_MODE, user2[0].getPublicKey());
+        byte[] authenticated = authCipher2.doFinal(auth1);
 
-        //Criar jsonObject com mensagem, parametros e chave
-        JsonObject obj = new JsonObject();
-        obj.addProperty("content", Base64.getEncoder().encodeToString(cipherText));
-        obj.addProperty("size", sessionEncrypted.length);
-        obj.addProperty("alg", "AES/ECB/PKCS5Padding");
 
         JsonWriter wrt = new JsonWriter(new OutputStreamWriter(socket.getOutputStream()));
         wrt.beginObject();
         wrt.name("type").value(type);
         wrt.name("src").value(sender);
         wrt.name("dst").value(receiver);
-        wrt.name("msg").value(Base64.getEncoder().encodeToString(obj.toString().getBytes()));
+        wrt.name("msg").value(Base64.getEncoder().encodeToString(authenticated));
         wrt.name("copy").value(copy);
         wrt.endObject();
         wrt.flush();
@@ -173,14 +183,24 @@ public class Client {
             System.out.println(data.getAsJsonObject());
     }
 
-    private static void receive(String type, int id, String msgId) throws IOException, BadPaddingException, IllegalBlockSizeException, InvalidKeyException, KeyStoreException, CertificateException, NoSuchAlgorithmException, NoSuchProviderException, SignatureException, UnrecoverableKeyException {
+    private static void receive(String type, int id, String msgId) throws IOException, BadPaddingException, IllegalBlockSizeException, InvalidKeyException, KeyStoreException, CertificateException, NoSuchAlgorithmException, NoSuchProviderException, SignatureException, UnrecoverableKeyException, NoSuchPaddingException {
 
-        //Get user private key from keystore
+
+
         KeyStore keyStore = KeyStore.getInstance("JKS");
         FileInputStream stream = new FileInputStream("server.jks");
         keyStore.load(stream, "password".toCharArray());
 
+        //Get user private key from keystore
         Key privKey = keyStore.getKey("user" + id, "password".toCharArray());
+
+        String[] sender = msgId.split("_");
+
+        //Get receiver certificate
+        java.security.cert.Certificate[] user2 = keyStore.getCertificateChain("user" + sender[0]);
+
+        //Veryify certificate with rootCA
+        user2[0].verify(user2[1].getPublicKey());
 
 
         JsonWriter wrt = new JsonWriter(new OutputStreamWriter(socket.getOutputStream()));
@@ -194,19 +214,32 @@ public class Client {
         JsonReader js = new JsonReader( new InputStreamReader( socket.getInputStream(), "UTF-8") );
         JsonElement data = new JsonParser().parse(js);
 
-        cipher1.init(Cipher.DECRYPT_MODE, privKey);
+        if(data.getAsJsonObject().has("error")){
+            System.err.println("User cannot access message");
+            throw new RuntimeException();
+        }
+
+        //Get encryption parameters and key from jsonObject
+        String sParams = data.getAsJsonObject().get("result").getAsJsonArray().get(1).getAsString();
 
         //Decode JsonObject from base64
-        String msgDecoded = new String(Base64.getDecoder().decode(data.getAsJsonObject().get("result").getAsJsonArray().get(1).getAsString()));
+        byte[] msgDecoded = Base64.getDecoder().decode(sParams);
 
-        //Parse JsonObject with contents and params to decryption
-        JsonObject msgAndParams = new JsonParser().parse(msgDecoded).getAsJsonObject();
-
-        //Decode contents from base64
-        byte[] cipherText = Base64.getDecoder().decode(msgAndParams.get("content").getAsString());
+        //Initialize ciphers
+        authCipher1.init(Cipher.DECRYPT_MODE, privKey);
+        authCipher2.init(Cipher.DECRYPT_MODE, user2[0].getPublicKey());
 
         //Decrypt with private key from the receptor
-        byte[] sessionAndKey = cipher1.doFinal(cipherText);
+        byte[] auth1 = authCipher1.doFinal(msgDecoded);
+
+        //Decrypt with senders public key
+        byte[] sessionParams = authCipher2.doFinal(auth1);
+
+        //Parse JsonObject with contents and params to decryption
+        JsonObject msgAndParams = new JsonParser().parse(new String(Base64.getDecoder().decode(sessionParams))).getAsJsonObject();
+
+        //Decode contents from base64
+        byte[] sessionAndKey = Base64.getDecoder().decode(msgAndParams.get("content").getAsString());
 
         //Separate encrpyted message and key
         byte[] msg = new byte[msgAndParams.get("size").getAsInt()];
@@ -216,9 +249,12 @@ public class Client {
 
         SecretKey originalKey = new SecretKeySpec(key, 0, key.length, "AES");
 
+        //Init sessionCipher
+        sessionCipher = Cipher.getInstance(msgAndParams.get("alg").getAsString(), "BC");
+
         //Decrypt message with session key and print
-        cipher2.init(Cipher.DECRYPT_MODE, originalKey);
-        byte[] decrypted = cipher2.doFinal(msg);
+        sessionCipher.init(Cipher.DECRYPT_MODE, originalKey);
+        byte[] decrypted = sessionCipher.doFinal(msg);
         System.out.println(new String(decrypted));
 
 
