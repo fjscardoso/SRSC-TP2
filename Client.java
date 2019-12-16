@@ -48,22 +48,25 @@ public class Client {
                     case NEW:
                         newMsgs(cmd[0], Integer.parseInt(cmd[1]));
                         break;
-                    case CREATE: ;
+                    case CREATE:
                         create(cmd[0], Integer.parseInt(cmd[1]));
                         break;
-                    case SEND: ;
-                        send(cmd[0], Integer.parseInt(cmd[1]), Integer.parseInt(cmd[2]), cmd[3]);
+                    case SEND:
+                        String concat = cmd[3];
+                        for(int i = 4; i < cmd.length; i++){
+                            concat +=  " " +  cmd[i];}
+                        send(cmd[0], Integer.parseInt(cmd[1]), Integer.parseInt(cmd[2]), concat);
                         break;
-                    case RECEIVE: ;
+                    case RECEIVE:
                         receive(cmd[0], Integer.parseInt(cmd[1]), cmd[2]);
                         break;
-                    case RECEIPT: ;
+                    case RECEIPT:
                         receipt(cmd[0], Integer.parseInt(cmd[1]), cmd[2], cmd[3]);
                         break;
-                    case STATUS: ;
+                    case STATUS:
                         status(cmd[0], Integer.parseInt(cmd[1]), cmd[2]);
                         break;
-                    case LIST: ;
+                    case LIST:
                         list(cmd[0]);
                         break;
                     case EXIT:
