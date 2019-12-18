@@ -1,6 +1,5 @@
 package Client;
 
-import Server.ServerConfig;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -14,7 +13,6 @@ import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
-import java.net.Socket;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.text.ParseException;
@@ -35,12 +33,14 @@ public class Client {
 
     private static SSLSocket socket;
     private static Cipher authCipher1, authCipher2, sessionCipher;
+    private static ClientConfig config;
 
     public static void main(String[] args) throws IOException, ClassNotFoundException, NoSuchProviderException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, IllegalBlockSizeException, NoSuchPaddingException, CertificateException, SignatureException, KeyStoreException, ParseException, UnrecoverableKeyException, ParserConfigurationException, SAXException {
-        //socket = new Socket("localhost", 9002);
 
-        ServerConfig config = new ServerConfig();
-        String[] aux = config.getCipherSuites();
+        config = new ClientConfig();
+
+        String[] confciphersuites=config.getCipherSuites();
+        String[] confprotocols=config.getTLSversions();
 
         //System.setProperty("javax.net.debug", "ssl,handshake");
         System.setProperty("javax.net.ssl.trustStore", "client-truststore.jks");
@@ -52,7 +52,8 @@ public class Client {
             socket =
                     (SSLSocket) f.createSocket("localhost", 9002);
 
-            socket.setEnabledCipherSuites(aux);
+            socket.setEnabledCipherSuites(confciphersuites);
+            socket.setEnabledProtocols(confprotocols);
 
             socket.startHandshake();
         }
@@ -60,10 +61,9 @@ public class Client {
         System.err.println(e.toString());
         }
 
-
         Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
-        authCipher1 = Cipher.getInstance("RSA/None/NoPadding", "BC");
-        authCipher2 = Cipher.getInstance("RSA/None/NoPadding", "BC");
+        authCipher1 = Cipher.getInstance(config.getRSA_ALG(), config.getProvider());
+        authCipher2 = Cipher.getInstance(config.getRSA_ALG(), config.getProvider());
 
         Scanner in = new Scanner(System.in);
         String command = (in.nextLine()).toLowerCase();
@@ -151,12 +151,12 @@ public class Client {
     private static void send(String type, int sender, int receiver, String msg) throws IOException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, CertificateException, NoSuchProviderException, SignatureException, NoSuchPaddingException {
 
         //Generate session key
-        KeyGenerator keyGen = KeyGenerator.getInstance("AES", "BC");
+        KeyGenerator keyGen = KeyGenerator.getInstance(config.getSessionAlg(), config.getProvider());
         keyGen.init(256); // for example
         SecretKey sessionKey = keyGen.generateKey();
 
         //Cifrar com chave de sessao
-        sessionCipher = Cipher.getInstance("AES/ECB/PKCS5Padding", "BC");
+        sessionCipher = Cipher.getInstance(config.getAES_ALG(), config.getProvider());
         sessionCipher.init(Cipher.ENCRYPT_MODE, sessionKey);
         byte[] sessionEncrypted = sessionCipher.doFinal(msg.getBytes());
 
@@ -164,7 +164,7 @@ public class Client {
         JsonObject obj = new JsonObject();
         //obj.addProperty("content", Base64.getEncoder().encodeToString(sessionAndkey));
         obj.addProperty("key", Base64.getEncoder().encodeToString(sessionKey.getEncoded()));
-        obj.addProperty("alg", "AES/ECB/PKCS5Padding");
+        obj.addProperty("alg", config.getAES_ALG());
 
         String msg64 = Base64.getEncoder().encodeToString(obj.toString().getBytes());
 
@@ -296,10 +296,10 @@ public class Client {
         byte[] key = Base64.getDecoder().decode(keyParamsObj.get("key").getAsString());
 
         //Get session key
-        SecretKey sessionKey = new SecretKeySpec(key, 0, key.length, "AES");
+        SecretKey sessionKey = new SecretKeySpec(key, 0, key.length, config.getSessionAlg());
 
         //Init sessionCipher
-        sessionCipher = Cipher.getInstance(keyParamsObj.get("alg").getAsString(), "BC");
+        sessionCipher = Cipher.getInstance(keyParamsObj.get("alg").getAsString(), config.getProvider());
 
         //Decrypt message with session key and print
         sessionCipher.init(Cipher.DECRYPT_MODE, sessionKey);
@@ -312,8 +312,6 @@ public class Client {
 
 
         receipt("receipt", id, msgId, Base64.getEncoder().encodeToString(copy));
-        //receipt("receipt", Integer.parseInt(sender[0]), sender[0] + "_" + msgId.split("_")[1], Base64.getEncoder().encodeToString(copy));
-        //System.out.println(Integer.parseInt(sender[0]) + "\n"  + msgId + "\n" + Base64.getEncoder().encodeToString(copy));
 
     }
 
@@ -348,10 +346,6 @@ public class Client {
         wrt.name("receipt").value(receipt);
         wrt.endObject();
         wrt.flush();
-        //JsonReader js = new JsonReader( new InputStreamReader( socket.getInputStream(), "UTF-8") );
-        //JsonElement data = new JsonParser().parse(js);
-        //if (data.isJsonObject())
-        //    System.out.println(data.getAsJsonObject());
     }
 
     private static void list(String type) throws IOException {
@@ -360,10 +354,10 @@ public class Client {
         wrt.name("type").value(type);
         wrt.endObject();
         wrt.flush();
-        //JsonReader js = new JsonReader( new InputStreamReader( socket.getInputStream(), "UTF-8") );
-        //JsonElement data = new JsonParser().parse(js);
-        //if (data.isJsonObject())
-        //    System.out.println(data.getAsJsonObject());
+        JsonReader js = new JsonReader( new InputStreamReader( socket.getInputStream(), "UTF-8") );
+        JsonElement data = new JsonParser().parse(js);
+        if (data.isJsonObject())
+            System.out.println(data.getAsJsonObject());
     }
 
 
