@@ -5,6 +5,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
+import org.bouncycastle.util.Arrays;
+import org.bouncycastle.util.encoders.Base64Encoder;
 import org.xml.sax.SAXException;
 
 import javax.crypto.*;
@@ -16,7 +18,9 @@ import java.io.*;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 import java.util.Scanner;
 
 public class Client {
@@ -34,8 +38,11 @@ public class Client {
     private static SSLSocket socket;
     private static Cipher authCipher1, authCipher2, sessionCipher;
     private static ClientConfig config;
+    private static List<Integer> nounces;
 
     public static void main(String[] args) throws IOException, ClassNotFoundException, NoSuchProviderException, NoSuchAlgorithmException, BadPaddingException, InvalidKeyException, IllegalBlockSizeException, NoSuchPaddingException, CertificateException, SignatureException, KeyStoreException, ParseException, UnrecoverableKeyException, ParserConfigurationException, SAXException {
+
+        nounces = new ArrayList<Integer>();
 
         config = new ClientConfig();
 
@@ -157,14 +164,26 @@ public class Client {
         keyGen.init(256); // for example
         SecretKey sessionKey = keyGen.generateKey();
 
+        Mac sha256_HMAC = Mac.getInstance("HmacSHA256");
+        sha256_HMAC.init(sessionKey);
+        byte[] copy = sha256_HMAC.doFinal(msg.getBytes());
+
+        int nounce = new SecureRandom().nextInt(99999);
+
+        JsonObject integrityControl = new JsonObject();
+        integrityControl.addProperty("msg", msg);
+        integrityControl.addProperty("hash", Base64.getEncoder().encodeToString(copy));
+        integrityControl.addProperty("nounce", nounce);
+
+        String integrityControl64 = Base64.getEncoder().encodeToString(integrityControl.toString().getBytes());
+
         //Cifrar com chave de sessao
         sessionCipher = Cipher.getInstance(config.getAES_ALG(), config.getProvider());
         sessionCipher.init(Cipher.ENCRYPT_MODE, sessionKey);
-        byte[] sessionEncrypted = sessionCipher.doFinal(msg.getBytes());
+        byte[] sessionEncrypted = sessionCipher.doFinal(integrityControl64.getBytes());
 
-        //Criar jsonObject com mensagem, parametros e chave
+        //Criar jsonObject com parametros e chave
         JsonObject obj = new JsonObject();
-        //obj.addProperty("content", Base64.getEncoder().encodeToString(sessionAndkey));
         obj.addProperty("key", Base64.getEncoder().encodeToString(sessionKey.getEncoded()));
         obj.addProperty("alg", config.getAES_ALG());
 
@@ -198,10 +217,6 @@ public class Client {
         outputStream.write( authenticated );
 
         byte sessionAndkey[] = outputStream.toByteArray();
-
-        Mac sha256_HMAC = Mac.getInstance("HmacSHA256");
-        sha256_HMAC.init(sessionKey);
-        byte[] copy = sha256_HMAC.doFinal(msg.getBytes());
 
         //Criar jsonObject com mensagem, parametros e chave
         JsonObject msgObj = new JsonObject();
@@ -306,12 +321,31 @@ public class Client {
         //Decrypt message with session key and print
         sessionCipher.init(Cipher.DECRYPT_MODE, sessionKey);
         byte[] decrypted = sessionCipher.doFinal(msg);
-        System.out.println(new String(decrypted));
+        //System.out.println(new String(decrypted));
+
+        //Decode JsonObject from base64
+        byte[] finalDecoded = Base64.getDecoder().decode(decrypted);
+
+        //Parse JsonObject with contents and params to decryption
+        JsonObject msgIntegrity = new JsonParser().parse(new String(finalDecoded)).getAsJsonObject();
+
+        String msgDecrypted = msgIntegrity.get("msg").getAsString();
+        byte[] integrityHash = Base64.getDecoder().decode(msgIntegrity.get("hash").getAsString());
+        int nounce = msgIntegrity.get("nounce").getAsInt();
 
         Mac sha256_HMAC = Mac.getInstance("HmacSHA256");
         sha256_HMAC.init(sessionKey);
-        byte[] copy = sha256_HMAC.doFinal(decrypted);
+        byte[] copy = sha256_HMAC.doFinal(msgDecrypted.getBytes());
 
+        if(!Arrays.areEqual(copy, integrityHash)){
+            System.err.println("Message integrity broken");
+            throw new RuntimeException();
+        }
+
+        if(nounces.contains(nounce)){
+            System.err.println("Message replaying detected");
+            throw new RuntimeException();
+        }
 
         receipt("receipt", id, msgId, Base64.getEncoder().encodeToString(copy));
 
