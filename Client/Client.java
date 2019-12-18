@@ -43,6 +43,8 @@ public class Client {
         String[] confprotocols=config.getTLSversions();
 
         //System.setProperty("javax.net.debug", "ssl,handshake");
+        System.setProperty("javax.net.ssl.keyStore", "server.jks");
+        System.setProperty("javax.net.ssl.keyStorePassword", "password");
         System.setProperty("javax.net.ssl.trustStore", "client-truststore.jks");
         System.setProperty("javax.net.ssl.trustStorePassword", "password");
 
@@ -151,7 +153,7 @@ public class Client {
     private static void send(String type, int sender, int receiver, String msg) throws IOException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException, CertificateException, NoSuchProviderException, SignatureException, NoSuchPaddingException {
 
         //Generate session key
-        KeyGenerator keyGen = KeyGenerator.getInstance(config.getSessionAlg(), config.getProvider());
+        KeyGenerator keyGen = KeyGenerator.getInstance(config.getAES_ALG().split("/")[0], config.getProvider());
         keyGen.init(256); // for example
         SecretKey sessionKey = keyGen.generateKey();
 
@@ -296,7 +298,7 @@ public class Client {
         byte[] key = Base64.getDecoder().decode(keyParamsObj.get("key").getAsString());
 
         //Get session key
-        SecretKey sessionKey = new SecretKeySpec(key, 0, key.length, config.getSessionAlg());
+        SecretKey sessionKey = new SecretKeySpec(key, 0, key.length, config.getAES_ALG().split("/")[0]);
 
         //Init sessionCipher
         sessionCipher = Cipher.getInstance(keyParamsObj.get("alg").getAsString(), config.getProvider());

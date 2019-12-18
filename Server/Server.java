@@ -52,6 +52,8 @@ class Server {
 
             System.setProperty("javax.net.ssl.keyStore", "server.jks");
             System.setProperty("javax.net.ssl.keyStorePassword", "password");
+            System.setProperty("javax.net.ssl.trustStore", "server-trustStore.jks");
+            System.setProperty("javax.net.ssl.trustStorePassword", "password");
 
             KeyStore ks = KeyStore.getInstance("JKS");
             ks.load(new FileInputStream("server.jks"), "password".toCharArray());
@@ -65,7 +67,10 @@ class Server {
 
             s.setEnabledProtocols(confprotocols);
             s.setEnabledCipherSuites(confciphersuites);
-
+            if(config.getAuthMode().equals("CLIENT-SERVER")) {
+                s.setNeedClientAuth(true);
+                System.out.println("Client auhentication requested for mutual authentication");
+            }
 
             //SSLServerSocket s = (SSLServerSocket) new ServerSocket( port, 5, InetAddress.getByName( "localhost" ) );
             System.out.print( "Started server on port " + port + "\n" );

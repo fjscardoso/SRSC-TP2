@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d46b9451-122c-427f-8958-cd9cb2624c98" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/TP2-Report-Template.docx" beforeDir="false" afterPath="$PROJECT_DIR$/TP2-Report-Template.docx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Server/Server.java" beforeDir="false" afterPath="$PROJECT_DIR$/Server/Server.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -34,6 +34,8 @@
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
@@ -51,17 +53,20 @@
     <key name="CopyClassDialog.RECENTS_KEY">
       <recent name="" />
     </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
+    </key>
   </component>
   <component name="RunManager" selected="Application.Server">
     <configuration name="Client" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="Client" />
+      <option name="MAIN_CLASS_NAME" value="Client.Client" />
       <module name="TP2a" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
     </configuration>
     <configuration name="Server" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="Server" />
+      <option name="MAIN_CLASS_NAME" value="Server.Server" />
       <module name="TP2a" />
       <option name="PROGRAM_PARAMETERS" value="9002" />
       <method v="2">
@@ -124,6 +129,8 @@
       <workItem from="1576411825763" duration="2150000" />
       <workItem from="1576427078479" duration="6190000" />
       <workItem from="1576514059918" duration="5693000" />
+      <workItem from="1576601865763" duration="14074000" />
+      <workItem from="1576682021661" duration="44000" />
     </task>
     <servers />
   </component>
@@ -144,32 +151,32 @@
     </option>
   </component>
   <component name="WindowStateProjectService">
-    <state x="104" y="62" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1576411967705">
+    <state x="104" y="62" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1576627318291">
       <screen x="0" y="0" width="1280" height="800" />
     </state>
-    <state x="104" y="62" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1280.800@0.0.1280.800" timestamp="1576411967705" />
-    <state width="1238" height="188" key="GridCell.Tab.0.bottom" timestamp="1576524559863">
+    <state x="104" y="62" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1280.800@0.0.1280.800" timestamp="1576627318291" />
+    <state width="1238" height="263" key="GridCell.Tab.0.bottom" timestamp="1576632820753">
       <screen x="0" y="0" width="1280" height="800" />
     </state>
-    <state width="1238" height="188" key="GridCell.Tab.0.bottom/0.0.1280.800@0.0.1280.800" timestamp="1576524559863" />
+    <state width="1238" height="263" key="GridCell.Tab.0.bottom/0.0.1280.800@0.0.1280.800" timestamp="1576632820753" />
     <state width="1238" height="192" key="GridCell.Tab.0.bottom/0.23.1280.701@0.23.1280.701" timestamp="1576434689472" />
     <state width="1238" height="265" key="GridCell.Tab.0.bottom/0.23.1280.777@0.23.1280.777" timestamp="1576358747750" />
-    <state width="1238" height="188" key="GridCell.Tab.0.center" timestamp="1576524559859">
+    <state width="1238" height="263" key="GridCell.Tab.0.center" timestamp="1576632820752">
       <screen x="0" y="0" width="1280" height="800" />
     </state>
-    <state width="1238" height="188" key="GridCell.Tab.0.center/0.0.1280.800@0.0.1280.800" timestamp="1576524559859" />
+    <state width="1238" height="263" key="GridCell.Tab.0.center/0.0.1280.800@0.0.1280.800" timestamp="1576632820752" />
     <state width="1238" height="192" key="GridCell.Tab.0.center/0.23.1280.701@0.23.1280.701" timestamp="1576434689471" />
     <state width="1238" height="265" key="GridCell.Tab.0.center/0.23.1280.777@0.23.1280.777" timestamp="1576358747746" />
-    <state width="1238" height="188" key="GridCell.Tab.0.left" timestamp="1576524559855">
+    <state width="1238" height="263" key="GridCell.Tab.0.left" timestamp="1576632820751">
       <screen x="0" y="0" width="1280" height="800" />
     </state>
-    <state width="1238" height="188" key="GridCell.Tab.0.left/0.0.1280.800@0.0.1280.800" timestamp="1576524559855" />
+    <state width="1238" height="263" key="GridCell.Tab.0.left/0.0.1280.800@0.0.1280.800" timestamp="1576632820751" />
     <state width="1238" height="192" key="GridCell.Tab.0.left/0.23.1280.701@0.23.1280.701" timestamp="1576434689470" />
     <state width="1238" height="265" key="GridCell.Tab.0.left/0.23.1280.777@0.23.1280.777" timestamp="1576358747744" />
-    <state width="1238" height="188" key="GridCell.Tab.0.right" timestamp="1576524559861">
+    <state width="1238" height="263" key="GridCell.Tab.0.right" timestamp="1576632820753">
       <screen x="0" y="0" width="1280" height="800" />
     </state>
-    <state width="1238" height="188" key="GridCell.Tab.0.right/0.0.1280.800@0.0.1280.800" timestamp="1576524559861" />
+    <state width="1238" height="263" key="GridCell.Tab.0.right/0.0.1280.800@0.0.1280.800" timestamp="1576632820753" />
     <state width="1238" height="192" key="GridCell.Tab.0.right/0.23.1280.701@0.23.1280.701" timestamp="1576434689471" />
     <state width="1238" height="265" key="GridCell.Tab.0.right/0.23.1280.777@0.23.1280.777" timestamp="1576358747749" />
     <state width="1238" height="211" key="GridCell.Tab.1.bottom" timestamp="1576430624158">
@@ -192,6 +199,10 @@
       <screen x="0" y="23" width="1280" height="701" />
     </state>
     <state x="317" y="206" key="com.intellij.ide.util.TipDialog/0.23.1280.701@0.23.1280.701" timestamp="1576077519884" />
+    <state x="298" y="162" width="683" height="476" key="find.popup" timestamp="1576627752570">
+      <screen x="0" y="0" width="1280" height="800" />
+    </state>
+    <state x="298" y="162" width="683" height="476" key="find.popup/0.0.1280.800@0.0.1280.800" timestamp="1576627752570" />
     <state width="600" height="424" key="javadoc.popup" timestamp="1576077861488">
       <screen x="0" y="0" width="1280" height="800" />
     </state>

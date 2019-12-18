@@ -15,7 +15,7 @@ import java.util.List;
 
 public class ClientConfig {
     private String[] cipherSuites, TLSversions;
-    private String authMode, RSA_ALG, AES_ALG, provider, sessionAlg;
+    private String authMode, RSA_ALG, AES_ALG, provider;
 
     public ClientConfig() throws IOException, SAXException, ParserConfigurationException {
         Document doc = loadConfig();
@@ -26,7 +26,6 @@ public class ClientConfig {
         this.RSA_ALG = doc.getElementsByTagName("RSA_ALG").item(0).getTextContent();
         this.AES_ALG = doc.getElementsByTagName("AES_ALG").item(0).getTextContent();
         this.provider = doc.getElementsByTagName("PROVIDER").item(0).getTextContent();
-        this.sessionAlg = doc.getElementsByTagName("SESSION_ALG").item(0).getTextContent();
     }
 
     private Document loadConfig() throws ParserConfigurationException, IOException, SAXException {
@@ -83,7 +82,4 @@ public class ClientConfig {
         return provider;
     }
 
-    public String getSessionAlg() {
-        return sessionAlg;
-    }
 }
