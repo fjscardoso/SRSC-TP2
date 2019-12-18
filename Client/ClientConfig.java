@@ -15,14 +15,13 @@ import java.util.List;
 
 public class ClientConfig {
     private String[] cipherSuites, TLSversions;
-    private String authMode, RSA_ALG, AES_ALG, provider;
+    private String RSA_ALG, AES_ALG, provider;
 
     public ClientConfig() throws IOException, SAXException, ParserConfigurationException {
         Document doc = loadConfig();
 
         this.cipherSuites = fill("ENABLEDCIPHERSUITES");
         this.TLSversions = fill("TLSVERSION");
-        this.authMode = doc.getElementsByTagName("AUTHMODE").item(0).getTextContent();
         this.RSA_ALG = doc.getElementsByTagName("RSA_ALG").item(0).getTextContent();
         this.AES_ALG = doc.getElementsByTagName("AES_ALG").item(0).getTextContent();
         this.provider = doc.getElementsByTagName("PROVIDER").item(0).getTextContent();
@@ -60,10 +59,6 @@ public class ClientConfig {
 
     public String[] getCipherSuites() {
         return cipherSuites;
-    }
-
-    public String getAuthMode() {
-        return authMode;
     }
 
     public String[] getTLSversions() {
