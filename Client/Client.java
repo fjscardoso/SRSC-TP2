@@ -347,6 +347,8 @@ public class Client {
             throw new RuntimeException();
         }
 
+        System.out.println(msgDecrypted);
+
         receipt("receipt", id, msgId, Base64.getEncoder().encodeToString(copy));
 
     }
@@ -362,6 +364,10 @@ public class Client {
         JsonReader js = new JsonReader( new InputStreamReader( socket.getInputStream(), "UTF-8") );
         JsonElement data = new JsonParser().parse(js);
         if (data.isJsonObject()) {
+            if(data.getAsJsonObject().get("result").getAsJsonObject().get("receipts").getAsJsonArray().size() == 0){
+                System.out.println("Message not yet read");
+                return;
+            }
             JsonObject obj = data.getAsJsonObject().get("result").getAsJsonObject().get("receipts").getAsJsonArray().get(0).getAsJsonObject();
             if(!data.getAsJsonObject().get("result").getAsJsonObject().get("msg").getAsString().equals(obj.get("receipt").getAsString())) {
                 System.err.println("Wrong receipt");
